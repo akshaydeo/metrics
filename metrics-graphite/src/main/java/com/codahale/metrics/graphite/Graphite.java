@@ -1,5 +1,8 @@
 package com.codahale.metrics.graphite;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.net.SocketFactory;
 import java.io.*;
 import java.net.InetSocketAddress;
@@ -11,6 +14,7 @@ import java.util.regex.Pattern;
  * A client to a Carbon server.
  */
 public class Graphite implements Closeable, IGraphite {
+    private static final Logger logger = LoggerFactory.getLogger(Graphite.class);
     private static final Pattern WHITESPACE = Pattern.compile("[\\s]+");
     // this may be optimistic about Carbon/Graphite
     private static final Charset UTF_8 = Charset.forName("UTF-8");
@@ -82,6 +86,7 @@ public class Graphite implements Closeable, IGraphite {
      */
     public void send (String name, String value, long timestamp) throws IOException {
         try {
+            logger.trace("Sending " + name + " " + value + " " + timestamp + " to graphite");
             writer.write(sanitize(name));
             writer.write(' ');
             writer.write(sanitize(value));

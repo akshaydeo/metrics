@@ -1,5 +1,8 @@
 package com.codahale.metrics.graphite;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -12,6 +15,7 @@ import java.util.regex.Pattern;
  * A client to a Carbon server.
  */
 public class GraphiteUDP implements Closeable, IGraphite {
+    private static final Logger logger = LoggerFactory.getLogger(GraphiteUDP.class);
     private static final Pattern WHITESPACE = Pattern.compile("[\\s]+");
     // this may be optimistic about Carbon/Graphite
     private static final Charset UTF_8 = Charset.forName("UTF-8");
@@ -54,6 +58,7 @@ public class GraphiteUDP implements Closeable, IGraphite {
      */
     public void connect () throws IllegalStateException, IOException {
         if (socket != null) {
+            logger.trace("Already connected");
             throw new IllegalStateException("Already connected");
         }
         this.socket = new DatagramSocket();
@@ -74,12 +79,15 @@ public class GraphiteUDP implements Closeable, IGraphite {
                     .append(' ')
                     .append(sanitize(value))
                     .append(' ')
-                    .append(Long.toString(timestamp)
-                    ).append('\n');
+                    .append(Long.toString(timestamp))
+                    .append('\n');
             byte[] dataBytes = packetData.toString().getBytes(this.charset);
-            this.socket.send(new DatagramPacket(dataBytes, dataBytes.length, this.address));
+            logger.trace("Sending " + packetData);
+            this.socket.send(new DatagramPacket(dataBytes, dataBytes.length, this.address.getAddress(),
+                    this.address.getPort()));
             this.failures = 0;
         } catch (IOException e) {
+            logger.error("Error while sending packet", e);
             failures++;
             throw e;
         }
