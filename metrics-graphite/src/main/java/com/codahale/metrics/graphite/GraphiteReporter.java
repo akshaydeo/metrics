@@ -22,7 +22,7 @@ public class GraphiteReporter extends ScheduledReporter {
      * @param registry the registry to report
      * @return a {@link Builder} instance for a {@link GraphiteReporter}
      */
-    public static Builder forRegistry(MetricRegistry registry) {
+    public static Builder forRegistry (MetricRegistry registry) {
         return new Builder(registry);
     }
 
@@ -39,7 +39,7 @@ public class GraphiteReporter extends ScheduledReporter {
         private TimeUnit durationUnit;
         private MetricFilter filter;
 
-        private Builder(MetricRegistry registry) {
+        private Builder (MetricRegistry registry) {
             this.registry = registry;
             this.clock = Clock.defaultClock();
             this.prefix = null;
@@ -54,7 +54,7 @@ public class GraphiteReporter extends ScheduledReporter {
          * @param clock a {@link Clock} instance
          * @return {@code this}
          */
-        public Builder withClock(Clock clock) {
+        public Builder withClock (Clock clock) {
             this.clock = clock;
             return this;
         }
@@ -65,7 +65,7 @@ public class GraphiteReporter extends ScheduledReporter {
          * @param prefix the prefix for all metric names
          * @return {@code this}
          */
-        public Builder prefixedWith(String prefix) {
+        public Builder prefixedWith (String prefix) {
             this.prefix = prefix;
             return this;
         }
@@ -76,7 +76,7 @@ public class GraphiteReporter extends ScheduledReporter {
          * @param rateUnit a unit of time
          * @return {@code this}
          */
-        public Builder convertRatesTo(TimeUnit rateUnit) {
+        public Builder convertRatesTo (TimeUnit rateUnit) {
             this.rateUnit = rateUnit;
             return this;
         }
@@ -87,7 +87,7 @@ public class GraphiteReporter extends ScheduledReporter {
          * @param durationUnit a unit of time
          * @return {@code this}
          */
-        public Builder convertDurationsTo(TimeUnit durationUnit) {
+        public Builder convertDurationsTo (TimeUnit durationUnit) {
             this.durationUnit = durationUnit;
             return this;
         }
@@ -98,7 +98,7 @@ public class GraphiteReporter extends ScheduledReporter {
          * @param filter a {@link MetricFilter}
          * @return {@code this}
          */
-        public Builder filter(MetricFilter filter) {
+        public Builder filter (MetricFilter filter) {
             this.filter = filter;
             return this;
         }
@@ -110,30 +110,30 @@ public class GraphiteReporter extends ScheduledReporter {
          * @param graphite a {@link Graphite} client
          * @return a {@link GraphiteReporter}
          */
-        public GraphiteReporter build(Graphite graphite) {
+        public GraphiteReporter build (IGraphite graphite) {
             return new GraphiteReporter(registry,
-                                        graphite,
-                                        clock,
-                                        prefix,
-                                        rateUnit,
-                                        durationUnit,
-                                        filter);
+                    graphite,
+                    clock,
+                    prefix,
+                    rateUnit,
+                    durationUnit,
+                    filter);
         }
     }
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GraphiteReporter.class);
 
-    private final Graphite graphite;
+    private final IGraphite graphite;
     private final Clock clock;
     private final String prefix;
 
-    private GraphiteReporter(MetricRegistry registry,
-                             Graphite graphite,
-                             Clock clock,
-                             String prefix,
-                             TimeUnit rateUnit,
-                             TimeUnit durationUnit,
-                             MetricFilter filter) {
+    private GraphiteReporter (MetricRegistry registry,
+            IGraphite graphite,
+            Clock clock,
+            String prefix,
+            TimeUnit rateUnit,
+            TimeUnit durationUnit,
+            MetricFilter filter) {
         super(registry, "graphite-reporter", filter, rateUnit, durationUnit);
         this.graphite = graphite;
         this.clock = clock;
@@ -141,11 +141,11 @@ public class GraphiteReporter extends ScheduledReporter {
     }
 
     @Override
-    public void report(SortedMap<String, Gauge> gauges,
-                       SortedMap<String, Counter> counters,
-                       SortedMap<String, Histogram> histograms,
-                       SortedMap<String, Meter> meters,
-                       SortedMap<String, Timer> timers) {
+    public void report (SortedMap<String, Gauge> gauges,
+            SortedMap<String, Counter> counters,
+            SortedMap<String, Histogram> histograms,
+            SortedMap<String, Meter> meters,
+            SortedMap<String, Timer> timers) {
         final long timestamp = clock.getTime() / 1000;
 
         // oh it'd be lovely to use Java 7 here
@@ -182,54 +182,54 @@ public class GraphiteReporter extends ScheduledReporter {
         }
     }
 
-    private void reportTimer(String name, Timer timer, long timestamp) throws IOException {
+    private void reportTimer (String name, Timer timer, long timestamp) throws IOException {
         final Snapshot snapshot = timer.getSnapshot();
 
         graphite.send(prefix(name, "max"), format(convertDuration(snapshot.getMax())), timestamp);
         graphite.send(prefix(name, "mean"), format(convertDuration(snapshot.getMean())), timestamp);
         graphite.send(prefix(name, "min"), format(convertDuration(snapshot.getMin())), timestamp);
         graphite.send(prefix(name, "stddev"),
-                      format(convertDuration(snapshot.getStdDev())),
-                      timestamp);
+                format(convertDuration(snapshot.getStdDev())),
+                timestamp);
         graphite.send(prefix(name, "p50"),
-                      format(convertDuration(snapshot.getMedian())),
-                      timestamp);
+                format(convertDuration(snapshot.getMedian())),
+                timestamp);
         graphite.send(prefix(name, "p75"),
-                      format(convertDuration(snapshot.get75thPercentile())),
-                      timestamp);
+                format(convertDuration(snapshot.get75thPercentile())),
+                timestamp);
         graphite.send(prefix(name, "p95"),
-                      format(convertDuration(snapshot.get95thPercentile())),
-                      timestamp);
+                format(convertDuration(snapshot.get95thPercentile())),
+                timestamp);
         graphite.send(prefix(name, "p98"),
-                      format(convertDuration(snapshot.get98thPercentile())),
-                      timestamp);
+                format(convertDuration(snapshot.get98thPercentile())),
+                timestamp);
         graphite.send(prefix(name, "p99"),
-                      format(convertDuration(snapshot.get99thPercentile())),
-                      timestamp);
+                format(convertDuration(snapshot.get99thPercentile())),
+                timestamp);
         graphite.send(prefix(name, "p999"),
-                      format(convertDuration(snapshot.get999thPercentile())),
-                      timestamp);
+                format(convertDuration(snapshot.get999thPercentile())),
+                timestamp);
 
         reportMetered(name, timer, timestamp);
     }
 
-    private void reportMetered(String name, Metered meter, long timestamp) throws IOException {
+    private void reportMetered (String name, Metered meter, long timestamp) throws IOException {
         graphite.send(prefix(name, "count"), format(meter.getCount()), timestamp);
         graphite.send(prefix(name, "m1_rate"),
-                      format(convertRate(meter.getOneMinuteRate())),
-                      timestamp);
+                format(convertRate(meter.getOneMinuteRate())),
+                timestamp);
         graphite.send(prefix(name, "m5_rate"),
-                      format(convertRate(meter.getFiveMinuteRate())),
-                      timestamp);
+                format(convertRate(meter.getFiveMinuteRate())),
+                timestamp);
         graphite.send(prefix(name, "m15_rate"),
-                      format(convertRate(meter.getFifteenMinuteRate())),
-                      timestamp);
+                format(convertRate(meter.getFifteenMinuteRate())),
+                timestamp);
         graphite.send(prefix(name, "mean_rate"),
-                      format(convertRate(meter.getMeanRate())),
-                      timestamp);
+                format(convertRate(meter.getMeanRate())),
+                timestamp);
     }
 
-    private void reportHistogram(String name, Histogram histogram, long timestamp) throws IOException {
+    private void reportHistogram (String name, Histogram histogram, long timestamp) throws IOException {
         final Snapshot snapshot = histogram.getSnapshot();
         graphite.send(prefix(name, "count"), format(histogram.getCount()), timestamp);
         graphite.send(prefix(name, "max"), format(snapshot.getMax()), timestamp);
@@ -244,18 +244,18 @@ public class GraphiteReporter extends ScheduledReporter {
         graphite.send(prefix(name, "p999"), format(snapshot.get999thPercentile()), timestamp);
     }
 
-    private void reportCounter(String name, Counter counter, long timestamp) throws IOException {
+    private void reportCounter (String name, Counter counter, long timestamp) throws IOException {
         graphite.send(prefix(name, "count"), format(counter.getCount()), timestamp);
     }
 
-    private void reportGauge(String name, Gauge gauge, long timestamp) throws IOException {
+    private void reportGauge (String name, Gauge gauge, long timestamp) throws IOException {
         final String value = format(gauge.getValue());
         if (value != null) {
             graphite.send(prefix(name), value, timestamp);
         }
     }
 
-    private String format(Object o) {
+    private String format (Object o) {
         if (o instanceof Float) {
             return format(((Float) o).doubleValue());
         } else if (o instanceof Double) {
@@ -272,15 +272,15 @@ public class GraphiteReporter extends ScheduledReporter {
         return null;
     }
 
-    private String prefix(String... components) {
+    private String prefix (String... components) {
         return MetricRegistry.name(prefix, components);
     }
 
-    private String format(long n) {
+    private String format (long n) {
         return Long.toString(n);
     }
 
-    private String format(double v) {
+    private String format (double v) {
         // the Carbon plaintext format is pretty underspecified, but it seems like it just wants
         // US-formatted digits
         return String.format(Locale.US, "%2.2f", v);
